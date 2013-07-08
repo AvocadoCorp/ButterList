@@ -1,6 +1,5 @@
 (function($) {
 
-
     function ButterList(options) {
       this.$el = $(options.el);
       this.$topPadding = null;
@@ -9,6 +8,8 @@
       this.items = options.items || [];
       this.itemHeights = {};
       this.itemRenderer = options.renderer || null;
+
+      this.averageHeight = null;
 
       this.topItemIndex = null;
       this.$topItem = null;
@@ -50,12 +51,16 @@
     };
 
     ButterList.prototype.getAverageItemHeight = function() {
+      if (this.averageHeight) {
+        return this.averageHeight;
+      }
       var heights = [];
       var iterator = 0;
       for (var key in this.itemHeights) {
         heights.push(this.itemHeights[key]);
         // Stop after 100. If this turns out terrible, make it better.
         if (++iterator === 100) {
+          this.averageHeight = average(heights);
           break;
         }
       }
@@ -65,10 +70,7 @@
     ButterList.prototype.update = function(delta) {
       // Scrolling with scrollbar
       if (Math.abs(delta) > 200) {
-        this.topItemIndex = this.bottomItemIndex = Math.round(this.$el.percentScrolledTop() * this.items.length);
-        this.updatePaddingTop();
-        this.renderItemsBelow();
-        this.updatePaddingBottom();
+        this.scrollbarUpdate();
       }       
       // Scrolling down
       else if (delta < 0) {
@@ -82,6 +84,30 @@
         this.removeItemsBelow();
         this.updatePaddingBottom();
       }
+    };
+
+    ButterList.prototype.scrollbarUpdate = function() {      
+      this.removeItems();
+      this.topItemIndex = Math.round(this.$el.percentScrolledTop() * this.items.length);
+      this.bottomItemIndex = Math.round(this.$el.percentScrolledBottom() * this.items.length);
+      this.renderItems();
+      this.updatePaddingTop();
+      this.updatePaddingBottom();
+    };
+
+    ButterList.prototype.removeItems = function() {
+      this.$topPadding.nextUntil('.butterlist-padding-bottom').remove();
+    };
+
+    ButterList.prototype.renderItems = function() {
+      var $rendered = null;
+      for (var i = this.topItemIndex; i <= this.bottomItemIndex; i++) {
+        $rendered = $(this.itemRenderer(this.items[i])).insertBefore(this.$bottomPadding).data('index', i);
+        if (i === this.topItemIndex) {
+          this.$topItem = $rendered;
+        }
+      }
+      this.$bottomItem = $rendered;
     };
 
     ButterList.prototype.render = function() {
@@ -159,7 +185,7 @@
       var $renderedItem = null;
       for (var i = this.bottomItemIndex + 1; i < this.items.length; i++) {
         $renderedItem = $(this.itemRenderer(this.items[i])).insertBefore(this.$bottomPadding).data('index', i);
-        if (i === 0) {
+        if (i === 0 || !this.$topItem) {
           this.$topItem = $renderedItem;
         }        
         this.resizePadding('bottom', -$renderedItem.height());
