@@ -1,0 +1,38 @@
+<html>
+    <head>
+       <meta charset="utf-8">
+       <script src="jquery-1.10.2.js"></script>
+       <script src="generator.js"></script>
+       <script src="butterlist.js"></script>
+       <style>
+         body {
+           background: #dfdfdf;
+         }
+         #list {
+           background: white;
+           height: 500px;
+           overflow-y: auto;
+         }
+         #list-container {
+         }
+       </style>
+    </head>
+    <body>
+      <div id="list-container">
+          <ul id="list">
+          </ul>
+      </div>
+      <script>
+          $(function() {
+            $list = $('#list');
+            var data = window.GenerateData();
+            var list = $list.butterlist({
+              renderer: function(item) {
+                return '<li>' + item + '</li>';
+              },
+              items: data
+            });
+          });
+      </script>
+    </body>
+</html>
