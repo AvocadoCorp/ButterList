@@ -1,7 +1,7 @@
 (function() {
   window.GenerateData = function() {
       var data = [];
-      for (var i = 0; i < Math.random() * 100000000; i++) {
+      for (var i = 0; i < Math.random() * 100000000000; i++) {
         data.push(i);
       }
       return data;

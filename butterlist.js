@@ -8,6 +8,7 @@
       this.items = options.items || [];
       this.itemHeights = {};
       this.itemRenderer = options.renderer || null;
+      this.ignoreScroll = false;
 
       this.averageHeight = null;
 
@@ -19,7 +20,6 @@
       this.prevScrollTop = 0;
 
       this.$el.on('scroll', this.onScroll.bind(this));
-
       // If items were passed in, render
       if (this.items) {
         this.render();
@@ -68,6 +68,10 @@
     };
 
     ButterList.prototype.update = function(delta) {
+      if (this.ignoreScroll) {
+        this.ignoreScroll = false;
+        return;
+      }
       // Scrolling with scrollbar
       if (Math.abs(delta) > 200) {
         this.scrollbarUpdate();
@@ -93,6 +97,8 @@
       this.renderItems();
       this.updatePaddingTop();
       this.updatePaddingBottom();
+      this.ignoreScroll = true;
+      this.$el.scrollTop(this.getTopPadHeight());
     };
 
     ButterList.prototype.removeItems = function() {
@@ -101,7 +107,7 @@
 
     ButterList.prototype.renderItems = function() {
       var $rendered = null;
-      for (var i = this.topItemIndex; i <= this.bottomItemIndex; i++) {
+      for (var i = this.topItemIndex; i <= this.bottomItemIndex && i < this.items.length; i++) {
         $rendered = $(this.itemRenderer(this.items[i])).insertBefore(this.$bottomPadding).data('index', i);
         if (i === this.topItemIndex) {
           this.$topItem = $rendered;
@@ -163,9 +169,10 @@
 
     ButterList.prototype.removeItemsBelow = function() {
       var itemsToRemove = [];
+      var averageHeight = this.getAverageItemHeight();
       for (var i = this.bottomItemIndex; i > this.topItemIndex && i >= 0; i--) {
         var $prevItem = this.$bottomItem.prev();
-        if ($prevItem === this.$topPadding || this.$bottomItem.position().top <= this.$el.height()) {
+        if ($prevItem === this.$topPadding || (this.$bottomItem.position().top - averageHeight) < this.$el.height()) {
           break;
         } else {          
           itemsToRemove.push(this.$bottomItem);
