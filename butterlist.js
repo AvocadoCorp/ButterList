@@ -6,32 +6,40 @@
       this.$bottomPadding = null;
 
       this.items = options.items || [];
-      this.itemHeights = {};
       this.itemRenderer = options.renderer || null;
       this.ignoreScroll = false;
 
-      this.averageHeight = null;
-
-      this.topItemIndex = null;
-      this.$topItem = null;
-      this.bottomItemIndex = null;
-      this.$bottomItem = null;
-
-      this.prevScrollTop = 0;
+      this.rendered = false;
 
       this.$el.on('scroll', this.onScroll.bind(this));
       // If items were passed in, render
-      if (this.items) {
+      if (this.items && this.items.length) {
         this.render();
       }
     };
 
     ButterList.prototype.appendItem = function(item) {
-      throw new Error('Not implemented yet.');
+      if (isArray(item)) {
+        this.items.push.apply(this.items, item);
+      } else {
+        this.items.append(item);  
+      }      
+      if (this.rendered) {
+        this.fullUpdate();
+      }
+      this.render();
     };
 
     ButterList.prototype.prependItem = function(item) {
-      throw new Error('Not implemented yet.');
+      if (isArray(item)) {
+        this.items.unshift.apply(this.items, item);
+      } else {
+        this.items.unshift(item); 
+      }
+      if (this.rendered) {
+        this.fullUpdate();
+      }
+      this.render();
     };
 
     ButterList.prototype.bindItemRenderer = function(renderer) {
@@ -52,7 +60,7 @@
           break;
         }
       }
-      return average(heights);
+      return heights.length ? average(heights) : 1;
     };
 
     ButterList.prototype.getBottomPadHeight = function() {
@@ -95,10 +103,25 @@
     };
 
     ButterList.prototype.render = function() {
-      this.$topPadding = $('<div class="butterlist-padding-top"></div>').appendTo(this.$el);
-      this.$bottomPadding = $('<div class="butterlist-padding-bottom"></div>').appendTo(this.$el);
+      if (this.rendered) {
+        return;
+      }      
+
+      this.itemHeights = {};
+
+      this.averageHeight = null;
+
+      this.$topItem = null;
+      this.$bottomItem = null;
       this.topItemIndex = 0;
       this.bottomItemIndex = -1;
+
+      this.prevScrollTop = 0;
+
+      this.rendered = true;
+      this.$topPadding = $('<div class="butterlist-padding-top"></div>').appendTo(this.$el);
+      this.$bottomPadding = $('<div class="butterlist-padding-bottom"></div>').appendTo(this.$el);
+
       this.renderItemsBelow();
       this.updatePaddingBottom();
     };
@@ -122,8 +145,8 @@
       var $renderedItem = null;
       for (var i = this.topItemIndex - 1; i >= 0; i--) {
         $renderedItem = $(this.itemRenderer(this.items[i])).insertAfter(this.$topPadding).data('index', i);
-        this.resizePadding('top', -$renderedItem.height());
-        this.itemHeights[i] = $renderedItem.height();
+        this.resizePadding('top', -$renderedItem.outerHeight());
+        this.itemHeights[i] = $renderedItem.outerHeight();
         this.$topItem = $renderedItem;
         if ($renderedItem.position().top < 0) {
           break;
@@ -138,7 +161,7 @@
       var averageHeight = this.getAverageItemHeight();
       for (var i = this.bottomItemIndex; i > this.topItemIndex && i >= 0; i--) {
         var $prevItem = this.$bottomItem.prev();
-        if ($prevItem === this.$topPadding || (this.$bottomItem.position().top - averageHeight) < this.$el.height()) {
+        if ($prevItem === this.$topPadding || (this.$bottomItem.position().top - (averageHeight * 3)) < this.$el.outerHeight()) {
           break;
         } else {          
           itemsToRemove.push(this.$bottomItem);
@@ -150,45 +173,54 @@
     };
 
     ButterList.prototype.renderItemsBelow = function() {
+      var averageHeight = this.getAverageItemHeight();
+      var outerHeight = this.$el.outerHeight() + averageHeight * 3;
       if (this.bottomItemIndex + 1 === this.items.length 
-        || (this.$bottomItem && this.$bottomItem.position().top > this.$el.height())) {
+        || (this.$bottomItem && this.$bottomItem.position().top > outerHeight)) {
         return;
       }
-
       var $renderedItem = null;
       for (var i = this.bottomItemIndex + 1; i < this.items.length; i++) {
         $renderedItem = $(this.itemRenderer(this.items[i])).insertBefore(this.$bottomPadding).data('index', i);
         if (i === 0 || !this.$topItem) {
           this.$topItem = $renderedItem;
-        }        
-        this.resizePadding('bottom', -$renderedItem.height());
-        this.itemHeights[i] = $renderedItem.height();
+        }
+        if (averageHeight === 1) {
+          averageHeight = $renderedItem.height();
+          outerHeight = this.$el.outerHeight() + averageHeight * 3;
+        }
+        this.resizePadding('bottom', -$renderedItem.outerHeight());
+        this.itemHeights[i] = $renderedItem.outerHeight();
         this.$bottomItem = $renderedItem;
-        if ($renderedItem.position().top > this.$el.height()) {
+        if ($renderedItem.position().top > outerHeight) {
           break;
         }
       }
-
       this.bottomItemIndex = i;
     };
 
     ButterList.prototype.resizePadding = function(type, pixels) {
       var $padding = this.getPaddingFromType(type);
-      $padding.height($padding.height() + pixels);
+      $padding.height($padding.outerHeight() + pixels);
     };
 
-    ButterList.prototype.scrollbarUpdate = function() {      
+    ButterList.prototype.scrollToTopOfItems = function() {
+      this.ignoreScroll = true;
+      this.$el.scrollTop(this.getTopPadHeight());
+    };
+
+    ButterList.prototype.fullUpdate = function() {      
       this.removeItems();
       this.topItemIndex = Math.round(this.$el.percentScrolledTop() * this.items.length);
       this.bottomItemIndex = Math.round(this.$el.percentScrolledBottom() * this.items.length);
       this.renderItems();
       this.updatePaddingTop();
       this.updatePaddingBottom();
-      this.ignoreScroll = true;
-      this.$el.scrollTop(this.getTopPadHeight());
+      this.scrollToTopOfItems();
     };
 
     ButterList.prototype.setItems = function(items) {
+      this.rendered = false;
       this.items = items;
       this.$el.empty();
       this.render();
@@ -200,8 +232,8 @@
         return;
       }
       // Scrolling with scrollbar
-      if (Math.abs(delta) > 200) {
-        this.scrollbarUpdate();
+      if (Math.abs(delta) > 500) {
+        this.fullUpdate();
       }       
       // Scrolling down
       else if (delta < 0) {
@@ -257,7 +289,7 @@
       var vals = [];
       this.each(function() {
         var $this = $(this);
-        vals.push(($this.scrollTop() + $this.height())  / this.scrollHeight);
+        vals.push(($this.scrollTop() + $this.outerHeight())  / this.scrollHeight);
       });
       return vals.length === 1 ? vals[0] : vals;
     };
@@ -268,6 +300,10 @@
         sum += array[i];
       }
       return sum / array.length;
+    }
+
+    function isArray(obj) {
+      return obj instanceof Array;
     }
 
 }).call(this, window.jQuery);
