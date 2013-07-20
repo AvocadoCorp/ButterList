@@ -1,5 +1,21 @@
+/**
+ * @preserve
+ *
+ * ButterList version 0.1.0
+ * http://github.com/AvocadoCorp/butterlist
+ *
+ * (c) 2013 Avocado Software, Inc.
+ * ButterList is freely distributable under the MIT license.
+ */
+
 (function($) {
 
+    /**
+     *  @param {Object}       options
+     *  @param {HTMLElement}  options.el
+     *  @param {Array=}       options.items
+     *  @param {Function=}    options.renderer
+     */
     function ButterList(options) {
       this.$el = $(options.el);
       this.$topPadding = null;
@@ -18,6 +34,10 @@
       }
     };
 
+    /**
+     *  @description Add items to the end of the list
+     *  @param {} item
+     */
     ButterList.prototype.appendItem = function(item) {
       if (isArray(item)) {
         this.items.push.apply(this.items, item);
@@ -30,6 +50,10 @@
       this.render();
     };
 
+    /**
+     *  @description Add items to the beginning of the list
+     *  @param {} item
+     */
     ButterList.prototype.prependItem = function(item) {
       if (isArray(item)) {
         this.items.unshift.apply(this.items, item);
@@ -42,10 +66,15 @@
       this.render();
     };
 
+    /**
+     *  @description Bind the rendering callback to the list
+     *  @param {function(): HTMLElement} renderer
+     */
     ButterList.prototype.bindItemRenderer = function(renderer) {
       this.itemRenderer = renderer;
     };
 
+    /** @return {number} **/
     ButterList.prototype.getAverageItemHeight = function() {
       if (this.averageHeight) {
         return this.averageHeight;
@@ -63,29 +92,38 @@
       return heights.length ? average(heights) : 1;
     };
 
+    /** @return {number} **/
     ButterList.prototype.getBottomPadHeight = function() {
       var itemsBelowCount = this.items.length - this.bottomItemIndex;
       return itemsBelowCount * this.getAverageItemHeight();
     };
 
+    /** @return {number} **/
     ButterList.prototype.getTopPadHeight = function() {
       return this.topItemIndex * this.getAverageItemHeight();
     };
 
+    /**
+     *  @param {string} type
+     *  @return {number}
+     */
     ButterList.prototype.getPaddingFromType = function(type) {
       return type === 'top' ? this.$topPadding : this.$bottomPadding;
     };
 
+    /** @description Called when a 'scroll' event is triggered **/
     ButterList.prototype.onScroll = function() {
       var delta = this.prevScrollTop - this.$el.scrollTop();
       this.prevScrollTop = this.$el.scrollTop();
       this.update(delta);
     };
 
+    /** @description Removes all visible list items **/
     ButterList.prototype.removeItems = function() {
       this.$topPadding.nextUntil('.butterlist-padding-bottom').remove();
     };
 
+    /** @description Remove top-most items that are no longer visible **/
     ButterList.prototype.removeItemsAbove = function() {
       var itemsToRemove = [];
       for (var i = this.topItemIndex; i < this.bottomItemIndex && i < this.items.length; i++) {
@@ -102,6 +140,7 @@
       itemsToRemove.forEach(function(item) { item.remove(); });
     };
 
+    /** @description Initial render called to setup the list **/
     ButterList.prototype.render = function() {
       if (this.rendered) {
         return;
@@ -126,6 +165,7 @@
       this.updatePaddingBottom();
     };
 
+    /** @description Render all items that should be visible given the current scroll state **/
     ButterList.prototype.renderItems = function() {
       var $rendered = null;
       for (var i = this.topItemIndex; i <= this.bottomItemIndex && i < this.items.length; i++) {
@@ -137,6 +177,10 @@
       this.$bottomItem = $rendered;
     };
 
+    /** 
+     * @description Render visible items above the current top-most rendered item 
+     * TODO(Mike): This should be cleaned up 
+     */
     ButterList.prototype.renderItemsAbove = function() {
       if (this.topItemIndex <= 0 || this.$topItem.position().top < 0) {
         return;
@@ -156,6 +200,7 @@
       this.topItemIndex = i;
     };
 
+    /** @description Remove bottom-most items that are no longer visible **/
     ButterList.prototype.removeItemsBelow = function() {
       var itemsToRemove = [];
       var averageHeight = this.getAverageItemHeight();
@@ -172,6 +217,10 @@
       itemsToRemove.forEach(function(item) { item.remove(); });
     };
 
+    /** 
+     * @description Render visible items below the current bottom-most rendered item
+     * TODO(Mike): This should be cleaned up 
+     */
     ButterList.prototype.renderItemsBelow = function() {
       var averageHeight = this.getAverageItemHeight();
       var outerHeight = this.$el.outerHeight() + averageHeight * 3;
@@ -199,16 +248,27 @@
       this.bottomItemIndex = i;
     };
 
+    /**
+     *  @description Set the size of the top/bottom padding of the list
+     *    Padding in this context is a div sized so that the scroll bar is 
+     *    rendered in the proper location. 
+     *  @param {string} type
+     *  @param {number} pixels
+     */
     ButterList.prototype.resizePadding = function(type, pixels) {
       var $padding = this.getPaddingFromType(type);
       $padding.height($padding.outerHeight() + pixels);
     };
 
+    /** @description Scroll to top of the list **/
     ButterList.prototype.scrollToTopOfItems = function() {
       this.ignoreScroll = true;
       this.$el.scrollTop(this.getTopPadHeight());
     };
 
+    /** @description Clear the rendered items, calculate our location, and rerender items.
+     *    Useful when we want to do quick jumps on the list.
+     */
     ButterList.prototype.fullUpdate = function() {      
       this.removeItems();
       this.topItemIndex = Math.round(this.$el.percentScrolledTop() * this.items.length);
@@ -219,6 +279,10 @@
       this.scrollToTopOfItems();
     };
 
+    /**
+     *  @description Set the items for the list and renders everything.
+     *  @param {Array} items
+     */
     ButterList.prototype.setItems = function(items) {
       this.rendered = false;
       this.items = items;
@@ -226,6 +290,10 @@
       this.render();
     };
 
+    /**
+     *  @description Take a scroll delta and call the proper rendering function
+     *  @param {number} delta
+     */
     ButterList.prototype.update = function(delta) {
       if (this.ignoreScroll) {
         this.ignoreScroll = false;
@@ -259,6 +327,9 @@
 
     /*** jQuery methods ***/
   
+    /**
+     *  @param {Object} options
+     */
     $.fn.butterlist = function(options) {
       var butterlists = [];
       options = options || {};
@@ -277,6 +348,7 @@
       return butterlists.length === 1 ? butterlists[0] : butterlists;
     };
 
+    /** @return {Array.<number>|number} **/
     $.fn.percentScrolledTop = function() {
       var vals = [];
       this.each(function() {
@@ -285,6 +357,7 @@
       return vals.length === 1 ? vals[0] : vals;
     };
      
+    /** @return {Array.<number>|number} **/
     $.fn.percentScrolledBottom = function() {
       var vals = [];
       this.each(function() {
@@ -294,6 +367,10 @@
       return vals.length === 1 ? vals[0] : vals;
     };
 
+    /** 
+     *  @param {Array.<number>} array
+     *  @return {number}
+     */
     function average(array) {
       var sum = 0;
       for (var i = 0; i < array.length; i++) {
@@ -302,6 +379,10 @@
       return sum / array.length;
     }
 
+    /**
+     *  @param {Object} obj
+     *  @return {bool}
+     */
     function isArray(obj) {
       return obj instanceof Array;
     }
