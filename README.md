@@ -15,7 +15,7 @@ $('#list').butterlist({
 });
 ```
 
-** or equally valid **
+**or equally valid**
 
 ```javascript
 var list = $('#list').butterlist();
