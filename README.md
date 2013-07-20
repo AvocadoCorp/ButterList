@@ -14,6 +14,17 @@ $('#list').butterlist({
   items: [1, 2, 3, 4, 5, 6, 7, 8]
 });
 ```
+
+** or equally valid **
+
+```javascript
+var list = $('#list').butterlist();
+list.bindItemRenderer(function(item) {
+  return '<li>' + item + '</li>';
+});
+list.setItems([1, 2, 3, 4, 5, 6, 7, 8]);
+```
+
   
 Public API
 ----------
