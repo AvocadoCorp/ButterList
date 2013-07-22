@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Butterlist by AvocadoCorp</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Butterlist</h1>
+        <p>A jQuery plugin for rendering/manipulating lists of any size without slowing down the browser.</p>
+
+        <p class="view"><a href="https://github.com/AvocadoCorp/ButterList">View the Project on GitHub <small>AvocadoCorp/ButterList</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/AvocadoCorp/ButterList/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/AvocadoCorp/ButterList/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/AvocadoCorp/ButterList">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="jquery-butterlist" class="anchor" href="#jquery-butterlist"><span class="octicon octicon-link"></span></a>jQuery ButterList</h1>
+
+<p>ButterList is a jQuery plugin for rendering/manipulating lists of any size without slowing down the browser.</p>
+
+<h2>
+<a name="initialization" class="anchor" href="#initialization"><span class="octicon octicon-link"></span></a>Initialization</h2>
+
+<p>Using the ButterList plugin is straightforward. To use the plugin, provide an array and a function that knows how to render a member of the array. <strong>Note</strong>: You don't need to provide data or the renderer at initialization, those can be set at any point during the life of the ButterList.</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="s1">'#list'</span><span class="p">).</span><span class="nx">butterlist</span><span class="p">({</span>
+  <span class="nx">renderer</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s1">'&lt;li&gt;'</span> <span class="o">+</span> <span class="nx">item</span> <span class="o">+</span> <span class="s1">'&lt;/li&gt;'</span><span class="p">;</span>
+  <span class="p">},</span>
+  <span class="nx">items</span><span class="o">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+<span class="p">});</span>
+</pre></div>
+
+<p><strong>or equally valid</strong></p>
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">list</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">'#list'</span><span class="p">).</span><span class="nx">butterlist</span><span class="p">();</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">bindItemRenderer</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="s1">'&lt;li&gt;'</span> <span class="o">+</span> <span class="nx">item</span> <span class="o">+</span> <span class="s1">'&lt;/li&gt;'</span><span class="p">;</span>
+<span class="p">});</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">setItems</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]);</span>
+</pre></div>
+
+<h2>
+<a name="public-api" class="anchor" href="#public-api"><span class="octicon octicon-link"></span></a>Public API</h2>
+
+<h3>
+<a name="appenditemobjectarray" class="anchor" href="#appenditemobjectarray"><span class="octicon octicon-link"></span></a><code>appendItem(object|array)</code>
+</h3>
+
+<p>Appends an object or array of objects to the end of the list.</p>
+
+<h3>
+<a name="prependitemobjectarray" class="anchor" href="#prependitemobjectarray"><span class="octicon octicon-link"></span></a><code>prependItem(object|array)</code>
+</h3>
+
+<p>Prepends an object or array of objects to the beginning of the list.</p>
+
+<h3>
+<a name="binditemrendererfunction" class="anchor" href="#binditemrendererfunction"><span class="octicon octicon-link"></span></a><code>bindItemRenderer(function)</code>
+</h3>
+
+<p>Provide the function to call when an a list item needs to be rendered. The function should take one paramater, an item from the array provided, and return a string or object that can be used in a jQuery append() call.</p>
+
+<h3>
+<a name="setitemsarray" class="anchor" href="#setitemsarray"><span class="octicon octicon-link"></span></a><code>setItems(array)</code>
+</h3>
+
+<p>Sets the array of objects that will be rendered, one at a time, by the renderer function. You can call <code>setItems</code> as many times as you would like with new or updated data. When <code>setItems</code> is called, it will clear any existing data/HTML and will begin rendering the new data from the start of the array.</p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<p>A modern flavor of jQuery. Probably something like 1.8.x. Built and tested with 1.10.2.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>ButterList is freely distributable under the MIT license. See LICENSE.txt for full license.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/AvocadoCorp">AvocadoCorp</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
